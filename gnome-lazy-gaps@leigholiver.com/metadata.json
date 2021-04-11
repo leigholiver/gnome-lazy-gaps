@@ -1,0 +1,8 @@
+{
+  "name": "Gnome Lazy Gaps",
+  "description": "For that gaps aesthetic, without a tiling window manager",
+  "uuid": "gnome-lazy-gaps@leigholiver.com",
+  "shell-version": [
+    "3.36"
+  ]
+}
