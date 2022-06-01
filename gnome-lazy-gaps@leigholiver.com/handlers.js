@@ -89,28 +89,43 @@ function sizeChange(shellwm, meta_window_actor, change) {
     debug.log("sizeChange")
 
     const meta_window = meta_window_actor.meta_window;
+    const window = windows.getWindow(meta_window);
 
-    // window was maximised
+    // the position to move the window to in order to add gaps
+    let position = false;
+
+    // check if the window is bugged
+    const buggedPosition = windows.isBugged(meta_window);
+    if(buggedPosition) {
+        debug.log(`window ${meta_window.get_title()} is bugged in the ${buggedPosition} position - re-positioning window`);
+        position = windows.positions(meta_window)['gaps'][buggedPosition]
+
+        // delay this to prevent recursion errors when a new window is opening in the bugged position
+        Mainloop.timeout_add(10, () => { windows.moveWindow(meta_window, position); });
+        return;
+    }
+
+    // check if window was maximised
     if(meta_window.get_maximized() === Meta.MaximizeFlags.BOTH) {
-        debug.log(`add gaps to maximized window ${meta_window.get_title()}`)
-        const window = windows.getWindow(meta_window);
-        const position = windows.positions(meta_window)['gaps']['max']
-        windows.moveWindow(meta_window, position)
+        debug.log(`add gaps to maximized window ${meta_window.get_title()}`);
+        position = 'max';
     }
     // window was (probably) tiled
     else if(meta_window.get_maximized() === Meta.MaximizeFlags.VERTICAL) {
         if(windows.isTiled(meta_window, 'left')) {
-            debug.log(`add gaps to tiled left window ${meta_window.get_title()}`)
-            const window = windows.getWindow(meta_window);
-            const position = windows.positions(meta_window)['gaps']['left']
-            windows.moveWindow(meta_window, position)
+            debug.log(`add gaps to tiled left window ${meta_window.get_title()}`);
+            position = 'left';
         }
         else if(windows.isTiled(meta_window, 'right')) {
-            debug.log(`add gaps to tiled right window ${meta_window.get_title()}`)
-            const window = windows.getWindow(meta_window);
-            const position = windows.positions(meta_window)['gaps']['right']
-            windows.moveWindow(meta_window, position)
+            debug.log(`add gaps to tiled right window ${meta_window.get_title()}`);
+            position = 'right';
         }
+    }
+
+    // reposition the window if necessary
+    if(position) {
+        position = windows.positions(meta_window)['gaps'][position]
+        windows.moveWindow(meta_window, position)
     }
 }
 

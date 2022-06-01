@@ -1,5 +1,8 @@
 const Meta = imports.gi.Meta;
 
+const ext = imports.misc.extensionUtils.getCurrentExtension();
+const debug = ext.imports.debug;
+
 // todo: expose as a setting
 const gap = 20
 
@@ -58,8 +61,6 @@ function isTiled(meta_window, side) {
 }
 
 
-// ran into an issue where newly created maximized
-// windows weren't being recognised as maximized
 function isMaximized(meta_window) {
     const monitor = getMonitor(meta_window)
     const window = getWindow(meta_window);
@@ -95,6 +96,26 @@ function hasGaps(meta_window) {
     return false;
 }
 
+function isBugged(meta_window) {
+    const window = getWindow(meta_window);
+    let gapOptions = positions(meta_window)['bugged']
+
+    const windowSizePos = {
+        width: window.width,
+        height: window.height,
+        x: window.x,
+        y: window.y,
+    }
+
+    let keys = Object.keys(gapOptions)
+    for (var index in keys) {
+        if(JSON.stringify(windowSizePos) === JSON.stringify(gapOptions[keys[index]])) {
+            return keys[index];
+        }
+    }
+
+    return false;
+}
 
 function positions(meta_window) {
     const monitor = getMonitor(meta_window)
@@ -143,6 +164,28 @@ function positions(meta_window) {
                 height: monitor.height - (gap*2),
                 x: midPoint  + (gap / 2),
                 y: monitor.y + gap,
+            }
+        },
+        bugged: {
+            max: {
+                width: monitor.width - (gap*2),
+                height: monitor.height - (gap*2),
+                x: monitor.x,
+                y: monitor.y,
+            },
+
+            left: {
+                width: (monitor.width/2) - (gap*2),
+                height: monitor.height - (gap*2),
+                x: monitor.x + gap,
+                y: monitor.y + (gap*2),
+            },
+
+            right: {
+                width: (monitor.width/2) - (gap*2),
+                height: monitor.height - (gap*2),
+                x: midPoint,
+                y: monitor.y,
             }
         }
     }
